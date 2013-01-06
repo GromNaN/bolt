@@ -3,11 +3,45 @@
 namespace Bolt\Controllers;
 
 use Bolt\Application;
+use Silex\Application as SilexApplication;
+use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Frontend
+class Frontend implements ControllerProviderInterface
 {
+    public function connect(SilexApplication $app)
+    {
+        $ctr = $app['controllers_factory'];
+
+        $ctr->match("/", array($this, 'homepage'))
+            ->before(array($this, 'before'))
+            ->bind('homepage')
+        ;
+
+        $ctr->match('/search', array($this, 'search'))
+            ->before(array($this, 'before'))
+        ;
+
+        $ctr->match('/{contenttypeslug}/feed.{extension}', array($this, 'feed'))
+            ->before(array($this, 'before'))
+            ->assert('extension', '(xml|rss)')
+            ->assert('contenttypeslug', $app['storage']->getContentTypeAssert())
+        ;
+
+        $ctr->match('/{contenttypeslug}/{slug}', array($this, 'record'))
+            ->before(array($this, 'before'))
+            ->assert('contenttypeslug', $app['storage']->getContentTypeAssert(true))
+            ->bind('contentlink')
+        ;
+
+        $ctr->match('/{contenttypeslug}', array($this, 'listing'))
+            ->before(array($this, 'before'))
+            ->assert('contenttypeslug', $app['storage']->getContentTypeAssert())
+        ;
+
+        return $ctr;
+    }
 
     function before(Request $request, Application $app)
     {

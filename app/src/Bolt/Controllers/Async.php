@@ -3,11 +3,57 @@
 Namespace Bolt\Controllers;
 
 use Bolt\Application;
+use Silex\Application as SilexApplication;
+use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Async
+class Async implements ControllerProviderInterface
 {
+    public function connect(SilexApplication $app)
+    {
+        $ctr = $app['controllers_factory'];
+
+        $ctr->get("/dashboardnews", array($this, 'dashboardnews'))
+            ->before(array($this, 'before'))
+            ->bind('dashboardnews')
+        ;
+
+        $ctr->get("/latestactivity", array($this, 'latestactivity'))
+            ->before(array($this, 'before'))
+            ->bind('latestactivity')
+        ;
+
+        $ctr->get("/filesautocomplete", array($this, 'filesautocomplete'))
+            ->before(array($this, 'before'))
+        ;
+
+        $ctr->get("/readme/{extension}", array($this, 'readme'))
+            ->before(array($this, 'before'))
+            ->bind('readme')
+        ;
+
+        $ctr->get("/widget/{key}", array($this, 'widget'))
+            ->before(array($this, 'before'))
+            ->bind('widget')
+        ;
+
+        $ctr->post("/markdownify", array($this, 'markdownify'))
+            ->before(array($this, 'before'))
+            ->bind('markdownify')
+        ;
+
+        $ctr->get("/makeuri", array($this, 'makeuri'))
+            ->before(array($this, 'before'))
+        ;
+
+        $ctr->get("/lastmodified/{contenttypeslug}", array($this, 'lastmodified'))
+            ->before(array($this, 'before'))
+            ->bind('lastmodified')
+        ;
+
+        return $ctr;
+    }
     /**
      * News.
      */
